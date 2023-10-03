@@ -1,0 +1,9 @@
+Patch adds changes made by VXG Inc. for HTTP digest auth and commits 
+for SSH server support cherry-picked from the branch 'main' merged onto
+the tag 'v4.3.1' branch 'v4.3-stable'.
+
+* eeeb9b6f (HEAD -> v4.3-stable) vxgcloudagent: merge onto v4.3.1 tag
+* efa593bf sshd: fix leak on disconnect
+* c30d3e15 sshd: plugin: work with _BUILTIN
+* 5c7664c5 plugins: iterate builtin plugins as if loaded
+* 91f0b3bc (tag: v4.3.1, origin/v4.3-stable) sort-dns: fix scope comparison

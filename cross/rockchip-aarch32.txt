@@ -1,0 +1,40 @@
+[host_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'armv8-a'
+endian = 'little'
+
+[built-in options] 
+c_args = [
+    '-I' + libc_dir / 'usr/include',
+    '-I' + local_sdk_dir + '/include',
+    '-static'
+    ]
+cpp_args = c_args
+c_link_args = [
+    '-L' + libc_dir / 'usr/lib',
+    '-L' + local_sdk_dir / 'lib/rockchip/static',
+    '-llocal_sdk',
+    '-s',
+    '-static'
+    ]
+cpp_link_args = c_link_args
+default_library = 'static'
+
+[properties]
+sys_root = sysroot_dir
+linker_paths = ['prebuilt/aarch32']
+
+[constants]
+cross_prefix = 'arm-linux-gnueabihf-'
+sysroot_dir = '/lsdk/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf'
+libc_dir = sysroot_dir / 'arm-linux-gnueabihf/libc'
+toolchain_dir = sysroot_dir + '/bin/'
+local_sdk_dir = '/lsdk/LocalSDKV1.0.0.1_build20220307'
+
+[binaries]
+c = cross_prefix + 'gcc'
+cpp = cross_prefix + 'g++'
+ar = cross_prefix + 'ar'
+strip = cross_prefix + 'strip'
+pkgconfig = '/usr/bin/pkg-config'

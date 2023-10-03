@@ -1,0 +1,10 @@
+[wrap-git]
+url=https://github.com/warmcat/libwebsockets.git
+revision=v4.3.1
+
+patch_directory  = libwebsockets-v4.3.1-ssh-vxg
+
+
+[provide]
+dependency_names = libwebsockets
+libwebsockets = libwebsockets_dep

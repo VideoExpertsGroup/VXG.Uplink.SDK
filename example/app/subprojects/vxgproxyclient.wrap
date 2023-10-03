@@ -1,0 +1,11 @@
+# git repository wrapping, replace [wrap-file] section by this one if you prefer
+# to store vxgproxyclient core library sources as a separate git repository.
+# Replace url with your path to the git repo and revision which is git tag
+[wrap-git]
+url=https://gitlab.vxg.io/vxg/camera/cloud-agent/cloud-agent-uplink-corelib.git
+
+[wrap-file]
+directory=vxgproxyclient
+
+[provide]
+vxgproxyclient = vxgproxyclient_dep

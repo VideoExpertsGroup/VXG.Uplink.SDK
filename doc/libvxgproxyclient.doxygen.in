@@ -1,0 +1,37 @@
+PROJECT_NAME           = @PACKAGE_NAME@
+PROJECT_NUMBER         = @PACKAGE_VERSION@
+PROJECT_BRIEF          = "VXG Uplink Client library"
+JAVADOC_AUTOBRIEF      = YES
+TAB_SIZE               = 4
+OPTIMIZE_OUTPUT_FOR_C  = YES
+MAX_INITIALIZER_LINES  = 0
+MARKDOWN_SUPPORT       = YES
+AUTOLINK_SUPPORT       = YES
+WARNINGS               = YES
+QUIET                  = YES
+INPUT                  = @INPUT@
+IMAGE_PATH             = "@TOP_BUILDDIR@"
+OUTPUT_DIRECTORY       = doc
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+SEARCHENGINE           = YES
+USE_MATHJAX            = YES
+MATHJAX_RELPATH        = https://cdn.mathjax.org/mathjax/latest
+GENERATE_LATEX         = YES
+USE_PDFLATEX           = YES
+PDF_HYPERLINKS         = YES
+MACRO_EXPANSION        = NO
+EXPAND_ONLY_PREDEF     = YES
+DOTFILE_DIRS           = "@TOP_BUILDDIR@"
+EXAMPLE_PATH           = "@EXAMPLES@"
+SHOW_NAMESPACES        = YES
+FULL_PATH_NAMES        = NO
+STRIP_FROM_PATH        = "@INC_STRIP@"
+STRIP_FROM_INC_PATH    = "@INC_STRIP@"
+GENERATE_TREEVIEW      = YES
+SOURCE_BROWSER         = YES
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+
+TAGFILES += "@TOP_SRCDIR@/cppreference-doxygen-web.tag.xml=http://en.cppreference.com/w/"

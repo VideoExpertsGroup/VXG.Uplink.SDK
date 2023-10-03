@@ -1,0 +1,32 @@
+#//! [cross-file-example]
+[host_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'armv7-a'
+endian = 'little'
+
+[built-in options]
+# Example of platform specific CFLAGS and CXXFLAGS
+c_args = ['-mfloat-abi=hard', '-march=armv7-a+vfpv3']
+cpp_args = c_args
+default_library = 'static'
+
+[properties]
+# If your toolchain requires specifying the sysroot dir you can setup it like below, sysroot_dir is a constant declared in [constants] section of the cross-file
+#sys_root = sysroot_dir
+# Meson uses pkg-config and cmake to detect external dependencies
+# Set the correct path to your cross-compilation pkgconfig directory if your app depends on some external dependencies like platform specific libs.
+#pkg_config_libdir = sysroot_dir / 'usr/lib/pkgconfig/'
+
+[constants]
+cross_prefix = 'arm-linux-gnueabihf-'
+#sysroot_dir = '/opt/arm-linux-gnueabihf/sysroot/'
+
+[binaries]
+c = cross_prefix + 'gcc'
+cpp = cross_prefix + 'g++'
+ar = cross_prefix + 'ar'
+strip = cross_prefix + 'strip'
+# You should specify your platform toolchain pkg-config binary here
+#pkgconfig = '/opt/arm-linux-gnueabihf/bin/pkg-config'
+#//! [cross-file-example]

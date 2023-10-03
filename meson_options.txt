@@ -1,0 +1,47 @@
+# openssl has Apache license only for the git master branch and all releases since 3.0+
+# ffmpeg disables openssl support if gpl and nonfree flags disabled
+# Axis provides openssl in SDK so we enabled ffmpeg openssl support
+# by enabling gpl and nonfree options
+option('gpl', type: 'feature', value: 'enabled',
+  description: 'Allow ffmpeg use of GPL code, the resulting libs and binaries will be under GPL', yield : true)
+option('nonfree', type: 'feature', value: 'enabled',
+  description: 'Allow ffmpeg use of nonfree code, the resulting libs and binaries will be unredistributable', yield : true)
+option('openssl', type: 'feature', value: 'enabled', yield : true)
+
+# libwebsockets options, openssl and lws crypto api
+option('LWS_WITH_GENCRYPTO', type: 'boolean', value: true, yield : true,
+  description: 'Enable support for Generic Crypto apis independent of TLS backend')
+# openssl backend
+option('LWS_WITH_OPENSSL', type: 'boolean', value: true, yield : true,
+  description: 'Enable OpenSSL backend support')
+# OPENSSL CA certs bundle path
+option('LWS_OPENSSL_CLIENT_CERTS', type: 'string', value: '/etc/ssl/certs/', yield : true,
+  description: 'OpenSSL SSL CA certs path. [default=/etc/ssl/certs/]')
+# mbedtls backend
+option('LWS_WITH_TLS', type: 'boolean', value: true, yield : true,
+  description: 'Include TLS support')
+option('LWS_WITH_SSL', type: 'boolean', value: true, yield : true,
+  description: 'Include SSL support (defaults to OpenSSL or similar, mbedTLS if LWS_WITH_MBEDTLS is set)')
+
+# Some cross compilation toolchains have no backtrace() function,
+# this option should be used to specify custom subproject with
+# backtrace() implementation.
+# If it's empty the backtrace() will not be used
+option('backtrace_lib', type: 'string', value: '', yield : true,
+        description: 'Backtrace lib, used only for cross-compilation')
+
+option('documentation',
+       type: 'boolean',
+       value: false, yield : true,
+       description: 'Build the documentation [default=false]')
+
+#
+# Security settings for TLS
+#
+
+# OPENSSL allowed ciphers list, used for https and secure websockets.
+option('OPENSSL_CIPHERS_LIST', type: 'string', value: '!RC4:!MD5:AES128-SHA:AES256-SHA:HIGH:!DSS:!aNULL', yield : true)
+# Don't validate server SSL certificates
+option('SSL_ALLOW_INSECURE_CERTS', type: 'boolean', value: true, yield : true)
+# SSL certs bundle file for TLS connections, not used if empty
+option('SSL_CERTS_BUNDLE_FILE', type: 'string', value: '/etc/ssl/certs/ca-certificates.crt', yield : true)
