@@ -1,6 +1,6 @@
 # ONVIF Uplink Camera Plugin for VXG Cloud
 
-Learn more about <a href="https://www.videoexpertsgroup.com">Cloud Video Surveillance</a>
+Learn more about <a href="https://www.videoexpertsgroup.com">Cloud Video Surveillance</a>\
 Learn more about usage and development in our <a href="https://help.videoexpertsgroup.com/kb/camera-uplink-agent">Knowledge Base</a>
 
 The `ONVIF Uplink Camera Plugin` is a simple `C++` reference code for integration of `IP cameras` with `VXG Cloud`.
@@ -33,7 +33,7 @@ Library files will be found at `<SRC_DIRECTORY>/install`
 
 
 ### Cross Compile Application
-<b>This process may require the cross compilation of additional libraries if they are not already built into the toolchain of the target platform.</b>
+<b>This process may require the cross compilation of additional libraries if they are not already built into the toolchain of the target platform.</b>\
 For example: If the target toolchain may have libssl and libcrypto already built, but not libwebsockets (LWS). You will need to cross-compile LWS with SSL support before cross compiling the Uplink App.
 
 1. Install necessary build libraries on host machine.
@@ -80,9 +80,8 @@ cmake .. -DCMAKE_INSTALL_PREFIX="../install" -DCMAKE_TOOLCHAIN_FILE="../cross/ex
 #     -DSSL_INCLUDE <Path to target platform OpenSSL include directory>
 make && make install
 ```
-Binary executable will be found at `<SRC_DIRECTORY>/build/vxg-proxy-client`
+Binary executable will be found at `<SRC_DIRECTORY>/build/vxg-proxy-client`\
 Library files will be found at `<SRC_DIRECTORY>/install`
-
 
 ## Example Application Usage
 
@@ -120,7 +119,7 @@ This is the prefered method in practice. Access token will need to be created by
 ```
 VXG_API_PASSWORD=<MAC_ADDRESS> ./vxg-proxy-client --serial <SERIAL_NUMBER> -f fwd1:http:[127.0.0.1]:80 -f fwd2:tcp:[127.0.0.1]:554
 ```
-`fwd1:http:[127.0.0.1]:80` creates a forward for port 80 on the local machine. Used for providing access to camera Web UI.
+`fwd1:http:[127.0.0.1]:80` creates a forward for port 80 on the local machine. Used for providing access to camera Web UI.\
 `fwd2:tcp:[127.0.0.1]:554` creates a forward for port 554 on the local machine. Used for providing access to camera RTSP stream.
 
 #### Using Access Token from VMS
@@ -128,9 +127,9 @@ This method is mainly used for testing application. Token will need to be create
 ```
 ./vxg-proxy-client --token eyJjYW1pZCI6IDEyMzQ1NiwgInVwbGluayI6ICJkZXYtYXBpLnByb3h5LmNsb3VkLXZtcy5jb20ifQo= -f fwd1:http:[127.0.0.1]:80 -f fwd2:tcp:[127.0.0.1]:554
 ```
-This method involves manually providing the access token to the application. The application will then avoid requesting the token from the provisioning server using `DEVICE_SERIAL` and `VXG_API_PASSWORD`
-`fwd1:http:[127.0.0.1]:80` creates a forward for port 80 on the local machine. Used for providing access to camera Web UI.
-`fwd2:tcp:[127.0.0.1]:554` creates a forward for port 554 on the local machine. Used for providing access to camera RTSP stream.
+This method involves manually providing the access token to the application. The application will then avoid requesting the token from the provisioning server using `DEVICE_SERIAL` and `VXG_API_PASSWORD`\
+`fwd1:http:[127.0.0.1]:80` creates a forward for port 80 on the local machine. Used for providing access to camera Web UI.\
+`fwd2:tcp:[127.0.0.1]:554` creates a forward for port 554 on the local machine. Used for providing access to camera RTSP stream.\
 
 ### Checking Connection After Running Application
 You can request connection info for a specific camera using the Uplink Server's API.
