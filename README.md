@@ -73,7 +73,7 @@ set(CMAKE_CXX_FLAGS "-O2 -g -Wall -fmessage-length=0")
 ```
 cd build
 cmake .. -DCMAKE_INSTALL_PREFIX="../install" -DCMAKE_TOOLCHAIN_FILE="../cross/example_cross.cmake"
-# Optional -DLWS_LIBRARY <Path to target platform libwebsockets library>
+# Optional -DLWS_LIB <Path to target platform libwebsockets library>
 #     -DLWS_INCLUDE <Path to target platform libwebsockets include directory>
 #     -DSSL_LIB <Path to target platform OpenSSL library file>
 #     -DCRYPTO_LIB <Path to target platform OpenSSL library file>
