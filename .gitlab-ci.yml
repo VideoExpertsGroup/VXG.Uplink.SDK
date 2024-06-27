@@ -1,0 +1,100 @@
+variables:
+  DEBIAN_FRONTEND: noninteractive
+  GIT_SSL_NO_VERIFY: 1
+
+stages:
+  - build
+  - release
+  - github
+
+before_script:
+  # git login
+  - echo -e "machine gitlab.vxg.io\nlogin gitlab-ci-token\npassword ${CI_JOB_TOKEN}" > ~/.netrc
+  - cat ~/.netrc
+
+build:
+  stage: build
+  image: ubuntu:22.04
+  variables:
+    INSTALL_DIR: "/builds/vxg/camera/cloud-agent/cloud-agent-uplink-corelib/install"
+    BUILD_DIR: "/builds/vxg/camera/cloud-agent/cloud-agent-uplink-corelib/build"
+    PACKAGE_PREFIX: "VXGCLOUDAGENT"
+  script:
+    - '[ ! -z $DEBUG ] && while true; do sleep 1; done'
+    - apt-get update && apt-get upgrade -y && apt-get install -y build-essential libwebsockets-dev cmake
+    - mkdir "$BUILD_DIR" && mkdir "$INSTALL_DIR" && cd "$BUILD_DIR"
+    - cmake .. -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+    - make && make install
+    - ls -hla ${INSTALL_DIR}
+  artifacts:
+    paths:
+      - install
+      - build
+    name: "${PACKAGE_PREFIX}"
+    expire_in: 4 week
+
+release:
+  image: registry.gitlab.com/gitlab-org/release-cli
+  stage: release
+  variables:
+    PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/Releases/${CI_COMMIT_TAG}"
+  before_script:
+    - apk add zip curl
+  # needs:
+  #   - job: pages
+  #     artifacts: true
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+\.[0-9]+$/
+  script:
+    - '[ ! -z $DEBUG ] && while true; do sleep 1; done'
+    # Docs assets prepare and upload
+    - echo "Uploading assets for $CI_COMMIT_TAG"
+    - mv public html-$CI_COMMIT_TAG && mv doc.pdf doc-$CI_COMMIT_TAG.pdf && zip -r docs-$CI_COMMIT_TAG.zip *.pdf html-*/
+    # Docs asset upload
+    - >
+      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file docs-$CI_COMMIT_TAG.zip
+      "${PACKAGE_REGISTRY_URL}/docs-${CI_COMMIT_TAG}.zip"
+    # Create release
+    - echo "Running release from $CI_COMMIT_TAG"
+    - |
+      release-cli --project-id $CI_PROJECT_ID --server-url https://gitlab.vxg.io create \
+          --name "$CI_COMMIT_TAG" --description "$RELEASE_DESCRIPTION" \
+          --tag-name $CI_COMMIT_TAG --ref $CI_COMMIT_TAG \
+          --assets-link "{\"name\":\"docs-${CI_COMMIT_TAG}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/docs-${CI_COMMIT_TAG}.zip\"}"
+
+github-deploy:
+  stage: github
+  before_script:
+    - apt update
+    - apt install -y git
+  # needs:
+  #   - job: pages
+  variables:
+    GITHUB_REPO: ""
+    GITHUB_USER: ""
+    GITHUB_TOKEN: ""
+    GITHUB_BRANCH: release-${CI_COMMIT_TAG}
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+\.[0-9]+$/
+  when: manual
+  script:
+    - '[ -z $GITHUB_REPO ] && echo "Pipeline variable GITHUB_REPO is not set!"'
+    - '[ -z $GITHUB_USER ] && echo "Pipeline variable GITHUB_USER is not set!"'
+    - '[ -z $GITHUB_TOKEN ] && echo "Pipeline variable GITHUB_TOKEN is not set!"'
+    - echo -e "machine github.com\nlogin ${GITHUB_USER}\npassword ${GITHUB_TOKEN}" > ~/.netrc
+    - '[ ! -z $DEBUG ] && while true; do sleep 1; done'
+    # Delete
+    - rm -rf public
+    # Delete internal CI script
+    - rm -f .gitlab-ci.yml
+    - mv doc.pdf doc-${CI_COMMIT_TAG}.pdf
+    # Create orphan branch with only one commit and push it to github
+    - git checkout --orphan ${GITHUB_BRANCH} ${CI_COMMIT_TAG}
+    - git config --global user.email "support@videoexpertsgroup.com"
+    - git config --global user.name "VXG Inc"
+    - git add .
+    - git commit -m "Release ${CI_COMMIT_TAG}"
+    - git remote add github_origin ${GITHUB_REPO}
+    - git push -u github_origin ${GITHUB_BRANCH}
