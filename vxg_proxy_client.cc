@@ -276,6 +276,12 @@ int main(int argc, char** argv)
 	}
 	#endif
 
+	// vars for reboot delay
+	#define MAX_REBOOT_ATTEMPTS 15
+	#define REBOOT_DURATION 60
+	int reboot_cnt = 0;
+
+
 	// Reboot loop
 	while (reboot && !quit)
 	{
@@ -305,7 +311,17 @@ int main(int argc, char** argv)
 		fprintf(stdout, "Stopped Uplink Client.\n");
 
 		if (reboot && !quit) {
-			fprintf(stdout, "Rebooting Uplink Client...\n");
+			if (reboot_cnt > MAX_REBOOT_ATTEMPTS)
+			{
+				lwsl_err("Maximum reboot attempts exceeded.\n");
+				reboot = 0;
+			}
+			else
+			{
+				fprintf(stdout, "Rebooting Uplink Client, reboot delay: %d seconds\n", REBOOT_DURATION);
+				std::this_thread::sleep_for(std::chrono::seconds(REBOOT_DURATION));
+				reboot_cnt++;
+			}
 		}
 	}
 } // end main
