@@ -442,6 +442,7 @@ int Uplink::Proxy::_websocket_callback(struct lws *wsi, enum lws_callback_reason
 
                 if (!lws_client_connect_via_info(&client_conn_info)) {
                     lwsl_err("lws_client_connect_via_info() failed\n");
+                    client->wsi_raw = NULL;
                     _destroy_proxy_client(client);
                     break;
                 }
@@ -638,14 +639,12 @@ int Uplink::Proxy::_websocket_callback(struct lws *wsi, enum lws_callback_reason
 	// return lws_callback_http_dummy(wsi, reason, user, in, len);
 
 do_retry:
-	if (!force_exit && lws_retry_sul_schedule_retry_wsi(proxy_api_conn.wsi, &proxy_api_conn.sul, proxy_api_connect,
-					     &proxy_api_conn.retry_count)) {
+    // Return to vxg_api_connect() to fetch new token
+	if (!force_exit && lws_retry_sul_schedule_retry_wsi(wsi, &m->sul, vxg_token_api_connect, &m->retry_count)) {
 		lwsl_err("%s: connection attempts exhausted\n", __func__);
 		force_exit = 1;
 	}
-
 	return 0;
-
 }
 
 void Uplink::Proxy::_vxg_token_api_connect(lws_sorted_usec_list_t *sul)
