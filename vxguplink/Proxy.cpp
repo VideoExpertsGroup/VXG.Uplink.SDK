@@ -442,7 +442,6 @@ int Uplink::Proxy::_websocket_callback(struct lws *wsi, enum lws_callback_reason
 
                 if (!lws_client_connect_via_info(&client_conn_info)) {
                     lwsl_err("lws_client_connect_via_info() failed\n");
-                    client->wsi_raw = NULL;
                     _destroy_proxy_client(client);
                     break;
                 }
