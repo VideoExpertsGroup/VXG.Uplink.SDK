@@ -134,8 +134,9 @@ int Uplink::Proxy::_proxy_client_connection_closed_notification(struct proxy_con
             lwsl_err("%s: malloc() error\n", __func__);
             return -1;
         }
-        *((char *)(amsg.payload+LWS_PRE)) = 'C';
-        *((client_id_t *)(amsg.payload+LWS_PRE+1)) = client->client_id;
+        char *payload = static_cast<char *>(amsg.payload);
+        payload[LWS_PRE] = 'C';
+        memcpy(payload + LWS_PRE + 1, &client->client_id, sizeof(client_id_t));
         if (!lws_ring_insert(ws_conn.ring, &amsg, 1)) {
             _destroy_message(&amsg);
             lwsl_err("LWS_CALLBACK_CLIENT_RECEIVE: lws_ring_insert() error\n");
@@ -240,9 +241,10 @@ int Uplink::Proxy::_proxy_client_callback(struct lws *wsi, enum lws_callback_rea
                 lwsl_err("%s: malloc() error\n", __func__);
                 return -1;
             }
-            *((char *)(amsg.payload+LWS_PRE)) = 'D';
-            *((client_id_t *)(amsg.payload+LWS_PRE+1)) = client->client_id;
-            memcpy(amsg.payload + LWS_PRE + 1+sizeof(client_id_t), in, len);
+            char *payload = static_cast<char *>(amsg.payload);
+            payload[LWS_PRE] = 'D';
+            memcpy(payload + LWS_PRE + 1, &client->client_id, sizeof(client_id_t));
+            memcpy(payload + LWS_PRE + 1 + sizeof(client_id_t), in, len);
             if (!lws_ring_insert(ws_conn.ring, &amsg, 1)) {
                 _destroy_message(&amsg);
                 lwsl_err("LWS_CALLBACK_RAW_RX: lws_ring_insert() error\n");
@@ -442,6 +444,7 @@ int Uplink::Proxy::_websocket_callback(struct lws *wsi, enum lws_callback_reason
 
                 if (!lws_client_connect_via_info(&client_conn_info)) {
                     lwsl_err("lws_client_connect_via_info() failed\n");
+                    client->wsi_raw = NULL;
                     _destroy_proxy_client(client);
                     break;
                 }
@@ -480,7 +483,8 @@ int Uplink::Proxy::_websocket_callback(struct lws *wsi, enum lws_callback_reason
                             lwsl_err("%s:%d: malloc() error\n", __func__, __LINE__);
                             return -1;
                         }
-                        memcpy(amsg.payload+LWS_PRE, websocket_rcv_buffer+(1+sizeof(client_id_t)), amsg.len);
+                        memcpy(static_cast<char *>(amsg.payload) + LWS_PRE,
+                               websocket_rcv_buffer + (1 + sizeof(client_id_t)), amsg.len);
                         if (!lws_ring_insert(client->ring, &amsg, 1)) {
                             _destroy_message(&amsg);
                             lwsl_err("LWS_CALLBACK_CLIENT_RECEIVE: lws_ring_insert() error\n");
@@ -638,12 +642,20 @@ int Uplink::Proxy::_websocket_callback(struct lws *wsi, enum lws_callback_reason
 	// return lws_callback_http_dummy(wsi, reason, user, in, len);
 
 do_retry:
-    // Return to vxg_api_connect() to fetch new token
-	if (!force_exit && lws_retry_sul_schedule_retry_wsi(wsi, &m->sul, vxg_token_api_connect, &m->retry_count)) {
+	// if (!force_exit && lws_retry_sul_schedule_retry_wsi(proxy_api_conn.wsi, &proxy_api_conn.sul, proxy_api_connect,
+	// 				     &proxy_api_conn.retry_count)) {
+	// 	lwsl_err("%s: connection attempts exhausted\n", __func__);
+	// 	force_exit = 1;
+	// }
+    
+    // On websocket connection close, we need to retry fetching the token since token may have changed
+    if (!force_exit && lws_retry_sul_schedule_retry_wsi(wsi, &m->sul, vxg_token_api_connect, &m->retry_count)) {
 		lwsl_err("%s: connection attempts exhausted\n", __func__);
 		force_exit = 1;
 	}
+
 	return 0;
+
 }
 
 void Uplink::Proxy::_vxg_token_api_connect(lws_sorted_usec_list_t *sul)
@@ -1071,6 +1083,8 @@ int Uplink::Proxy::start()
     // lws_set_log_level(LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_DEBUG, NULL);
     lws_set_log_level(LLL_USER | LLL_ERR | LLL_WARN, NULL);
     lwsl_user("Starting Uplink Client\n");
+    lwsl_user("Serial Number: %s\n", device_serial);
+    lwsl_user("MAC Address: %s\n", vxg_api_password);
 
     static const struct lws_protocols protocols[] = {
         { "vxg-websocket", websocket_callback, sizeof(struct my_conn), WEBSOCKET_BUFFER_SIZE, 0, NULL, 0 },
