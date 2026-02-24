@@ -14,6 +14,7 @@ project(vxg-proxy-client)
 add_executable(${PROJECT_NAME}
     vxg_proxy_client.cc
 )
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 # Add uplink library
 add_subdirectory(vxguplink)
 
