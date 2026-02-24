@@ -1,6 +1,10 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_library(vxguplink SHARED Proxy.cpp)
+set_target_properties(vxguplink PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
+)
 add_subdirectory(cjson)
 
 # set libraries to link
