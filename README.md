@@ -68,6 +68,72 @@ cmake --build build -j4
 
 On Apple Silicon, Homebrew libraries are under `/opt/homebrew` instead of `/usr/local`. Point the `ln -sf` commands at `$(brew --prefix)/lib` and `$(brew --prefix)/include`.
 
+### Cross-compiling for embedded Linux
+
+The target sysroot must provide target-architecture builds of OpenSSL and zlib. You must also cross-compile libwebsockets 4.5.8; libraries installed on the build host cannot be linked into the target binary.
+
+1. Create a CMake toolchain file for the target. For example, save the following as `toolchains/arm-linux.cmake` and replace the compiler and sysroot paths with values from your platform SDK:
+
+```cmake
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+
+set(CMAKE_C_COMPILER /opt/toolchain/bin/arm-linux-gnueabihf-gcc)
+set(CMAKE_SYSROOT /opt/toolchain/arm-linux-gnueabihf/sysroot)
+set(CMAKE_FIND_ROOT_PATH "${CMAKE_SYSROOT}")
+
+# Build tools run on the host; headers, libraries, and packages come from the target.
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+```
+
+2. Prepare a dependency prefix containing target builds with this layout:
+
+```text
+.deps/target/
+├── lws/
+│   ├── include/
+│   └── lib/libwebsockets.a
+├── ssl/
+│   ├── include/
+│   └── lib/
+└── zlib/
+    ├── include/
+    └── lib/
+```
+
+If your platform SDK does not already include compatible target builds, cross-compile each dependency with the same toolchain. For libwebsockets:
+
+```
+cmake -S /path/to/libwebsockets-4.5.8 -B build-lws-target \
+  -DCMAKE_TOOLCHAIN_FILE="$PWD/toolchains/arm-linux.cmake" \
+  -DCMAKE_INSTALL_PREFIX="$PWD/.deps/target/lws" \
+  -DOPENSSL_ROOT_DIR="$PWD/.deps/target/ssl" \
+  -DZLIB_ROOT="$PWD/.deps/target/zlib" \
+  -DLWS_WITH_SSL=ON \
+  -DLWS_WITH_SHARED=OFF \
+  -DLWS_WITH_STATIC=ON \
+  -DLWS_WITHOUT_TESTAPPS=ON \
+  -DLWS_WITHOUT_TEST_SERVER=ON
+cmake --build build-lws-target
+cmake --install build-lws-target
+```
+
+3. Configure and build the client with the same toolchain and dependency prefix:
+
+```
+cmake -S . -B build-target \
+  -DCMAKE_TOOLCHAIN_FILE="$PWD/toolchains/arm-linux.cmake" \
+  -DVXG_DEPS_PREFIX="$PWD/.deps/target" \
+  -DOPENSSL_ROOT_DIR="$PWD/.deps/target/ssl" \
+  -DZLIB_ROOT="$PWD/.deps/target/zlib"
+cmake --build build-target
+```
+
+The target binary is `build-target/vxg-proxy-client`. Verify its architecture and dynamic dependencies with the inspection tools supplied by your SDK (for example, `file` and the target-prefixed `readelf`) before deploying it. If the target does not provide the required shared libraries, build static dependencies or package the matching shared libraries with the application.
+
 ## Example application usage
 
 ### Command-line options
