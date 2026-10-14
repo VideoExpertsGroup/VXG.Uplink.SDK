@@ -134,6 +134,26 @@ cmake --build build-target
 
 The target binary is `build-target/vxg-proxy-client`. Verify its architecture and dynamic dependencies with the inspection tools supplied by your SDK (for example, `file` and the target-prefixed `readelf`) before deploying it. If the target does not provide the required shared libraries, build static dependencies or package the matching shared libraries with the application.
 
+### Provisioning server address
+
+By default the client requests an access token from `camera.vxg.io`. Pass `VXG_DEFAULT_API_HOST` at configure time to compile in a different provisioning hostname. This applies to the native and cross builds above. Add it to the client `cmake` command:
+
+```
+-DVXG_DEFAULT_API_HOST=camera.example.com
+```
+
+For example:
+
+```
+cmake -S . -B build \
+  -DVXG_DEPS_PREFIX="$PWD/.deps/install" \
+  -DOPENSSL_ROOT_DIR=/usr \
+  -DZLIB_ROOT=/usr \
+  -DVXG_DEFAULT_API_HOST=camera.example.com
+```
+
+Use the hostname only, without a scheme or path. The token request path stays `/v1/token?serial_id=%s` unless `VXG_API_PATH` is set at runtime. If `VXG_API_HOST` is set when the client runs, that value replaces the hostname compiled in with `VXG_DEFAULT_API_HOST`.
+
 ## Example application usage
 
 ### Command-line options
@@ -149,7 +169,7 @@ The target binary is `build-target/vxg-proxy-client`. Verify its architecture an
 
 ### Environment variables
 
-`VXG_API_HOST` — hostname of the VXG Camera API (default: `camera.vxg.io`)
+`VXG_API_HOST` — hostname of the VXG Camera API. When unset, the client uses the hostname compiled in with `VXG_DEFAULT_API_HOST` (default: `camera.vxg.io`)
 
 `VXG_API_PATH` — template for the VXG Camera API token request path and query string (default: `/v1/token?serial_id=%s`; `%s` is replaced with the device serial number at runtime)
 
