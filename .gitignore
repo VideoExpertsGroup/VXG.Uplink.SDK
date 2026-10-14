@@ -2,5 +2,6 @@
 *builddir*/
 build/
 install/
+.deps/
 cm.log
 local_build.sh
